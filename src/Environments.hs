@@ -1,4 +1,4 @@
-module Environments (CliffWalkingEnv(..), makeCliffWalkingEnv, Observation, Action) where
+module Environments (CliffWalkingEnv(..), makeCliffWalkingEnv, Observation, Action, resetEnv, stepAgent) where
 
 import Control.Monad (forM_)
 import Control.Monad.State
@@ -56,8 +56,8 @@ data CliffWalkingEnv = CliffWalkingEnv {
   
 
 
-makeCliffWalkingEnv :: a -> IO CliffWalkingEnv
-makeCliffWalkingEnv params = do
+makeCliffWalkingEnv :: IO CliffWalkingEnv
+makeCliffWalkingEnv = do
   gen <- Rand.getStdGen
   return $ CliffWalkingEnv { 
     agentPos = 0, 
@@ -65,6 +65,15 @@ makeCliffWalkingEnv params = do
              dims = (4, 12),
              previousAction = Nothing
   }
+
+
+resetEnv :: (Monad m) => StateT CliffWalkingEnv m Observation
+resetEnv = do
+  let initialPos = 0
+  env <- get
+  put $ env { agentPos = initialPos, previousAction = Nothing }
+  return initialPos
+
 
   -- returns Observation(int), Reward(int), Is_Terminated?(bool)
 stepAgent :: (Monad m) => Action -> StateT CliffWalkingEnv m (Observation, Int, Bool)
