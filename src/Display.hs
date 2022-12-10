@@ -26,16 +26,4 @@ drawing = pictures
     paddleColor = light (light blue)
 
 
-
--- chooseAction :: ()
-
-
--- performQLearning :: ()
-
--- performDoubleQLearning :: ()
-
-
-
-
--- someFunc :: IO ()
 renderEpisode env agent = display window background drawing

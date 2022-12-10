@@ -15,13 +15,15 @@ main :: IO ()
 main = do
   -- specify environment paramaters
   let agentParams = ("", 50)
+  let env = ("", 50)
   -- create the enviornment with specified parameters
-  let env = makeCliffWalkingEnv
-  let agent = makeQLearningAgent env agentParams
-  rewards <- performEpisodes numEpisodes env
+  -- let env = makeCliffWalkingEnv
+  -- let agent = makeQLearningAgent env agentParams
+  -- rewards <- performEpisodes numEpisodes env
+  rewards <- performEpisodes numEpisodes
   -- train the agent by through episodes of running the environment
   -- let results = Simulation.performEpisodes env agent
   -- plot the learning progress
   Plotting.plotData numEpisodes rewards
   -- render an episode with the agents learned policy
-  Display.renderEpisode env agent
+  Display.renderEpisode env ()

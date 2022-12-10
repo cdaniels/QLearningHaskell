@@ -1,4 +1,8 @@
-module Environments (CliffWalkingEnv(..), makeCliffWalkingEnv, Observation, Action, resetEnv, stepAgent) where
+
+-- module Environments (CliffWalkingEnv(..), makeCliffWalkingEnv, Observation, Action) where
+-- module Environments (Observation, Action, resetEnv, gridH, gridW, Action) where
+module Environments where
+
 
 import Control.Monad (forM_)
 import Control.Monad.State
@@ -7,7 +11,6 @@ import Data.List.Split (chunksOf)
 import Data.Maybe (catMaybes)
 import qualified System.Random as Rand
 
-
 data Cell = Start | Goal | Free | Cliff
   deriving (Show, Eq)
 
@@ -15,11 +18,11 @@ isSafe :: Cell -> Bool
 isSafe Cliff = False
 isSafe _ = True
 
-tileToChar :: Cell -> Char
-tileToChar Start = 'S'
-tileToChar Goal = 'G'
-tileToChar Free = 'F'
-tileToChar Cliff = 'H'
+cellToChar :: Cell -> Char
+cellToChar Start = 'S'
+cellToChar Goal = 'G'
+cellToChar Free = 'F'
+cellToChar Cliff = 'H'
 
 charToCell :: Char -> Cell
 charToCell 'S' = Start
@@ -36,104 +39,62 @@ data Action =
   MoveUp
     deriving (Show, Eq, Enum)
 
+gridH = 4
+gridW = 12
+startState = convertPosTo1D (0, 3)
+goalState = convertPosTo1D (11, 3)
+cliffStates = [(x,3) | x <- [1..10]]
 
 
-data CliffWalkingEnv = CliffWalkingEnv { 
-  agentPos :: Observation,
-           grid :: A.Array Int Cell, 
-           dims :: (Int, Int), 
-           previousAction :: Maybe Action
-}
+-- step in th
+stepXY :: Action -> Int -> Int -> (Int, Int)
+stepXY MoveLeft x y 
+  | 0 < x     = (x-1, y)
+  | otherwise = (x, y)
+stepXY MoveDown x y
+  | y > gridH = (x, y-1)
+  | otherwise = (x, y)
+stepXY MoveRight x y
+  | x < gridW = (x+1, y)
+  | otherwise = (x, y)
+stepXY MoveUp x y
+  | 0 < y     =  (x ,y+1)
+  | otherwise = (x, y)
 
+step1D :: Action -> Int -> Int
+step1D a pos1D =
+  convertPosTo1D $ stepXY a x y
+  where 
+    x = getXFromPos pos1D
+    y = getYFromPos pos1D
 
+getXFromPos :: Int -> Int
+getXFromPos l = l `rem` gridW
 
--- take the rows, cols, start, goal, cliff_range
--- returns the array for the cliff walking env
--- buildGridCells :: Int -> Int -> Int -> Int -> [Int] -> [Cell]
--- buildGridCells rows cols start goal cliffCells =
---   (replicate [Free] ++ 
---   where 
-  
+getYFromPos :: Int -> Int
+getYFromPos l = l `quot` gridH
 
+convertPosTo2D :: Int -> (Int, Int)
+convertPosTo2D l = quotRem l gridW
+  -- (l `mod` gridW) (l )
 
-makeCliffWalkingEnv :: IO CliffWalkingEnv
-makeCliffWalkingEnv = do
-  gen <- Rand.getStdGen
-  return $ CliffWalkingEnv { 
-    agentPos = 0, 
-             grid = A.listArray (0, 4*12) (charToCell <$> "FFFFFFFFFFFF" ++ "FFFFFFFFFFFF" ++ "SCCCCCCCCCCG"),
-             dims = (4, 12),
-             previousAction = Nothing
-  }
+convertPosTo1D :: (Int, Int) -> Int
+convertPosTo1D (x, y) =  
+  y * gridW + x
 
+-- perform an action on the current observed state and renurn the next state, reward, and termination status
+stepEnv :: Action -> Observation -> (Observation, Double, Bool)
+stepEnv act pos
+  | isGoal nextPos    = (nextPos, 0, True)
+  | isCliff nextPos   = (nextPos, -100, False)
+  | otherwise         = (nextPos, -1, False)
+  where nextPos = step1D act pos
 
-resetEnv :: (Monad m) => StateT CliffWalkingEnv m Observation
-resetEnv = do
-  let initialPos = 0
-  env <- get
-  put $ env { agentPos = initialPos, previousAction = Nothing }
-  return initialPos
+resetEnv :: (Observation, Int, Bool)
+resetEnv = (startState, 0, False)
 
+isGoal :: Observation -> Bool
+isGoal pos1d = pos1d == goalState
 
-  -- returns Observation(int), Reward(int), Is_Terminated?(bool)
-stepAgent :: (Monad m) => Action -> StateT CliffWalkingEnv m (Observation, Int, Bool)
-stepAgent act = do
-  env <- get
-  let pos = agentPos env
-  let allLegalMoves = inBounds pos (dims env)
-  let newPos = if act `elem` allLegalMoves 
-        then applyMove act pos (snd . dims $ env) 
-        else pos
-  let (done, reward) = case cell of
-        Goal -> (True, 0) -- no reward for reaching the goal
-        Cliff -> (True, -100) -- stepping off the cliff encurs -100
-        _ -> (False, -1) -- each step incurs a negative reward
-        where cell = grid env A.! newPos
-  put $ env {
-    agentPos = newPos,
-    previousAction = Just act
-  }
-  return (newPos, reward, done)
-
--- stepAgent Action.MoveLeft pos1d
---   | 0 < pos = pos - 1
--- stepAgent Action.MoveDown
--- stepAgent Action.MoveRight = 
--- stepAgent Action.MoveUp = 
---   where x y = convertPosToXY pos1d
-
--- stepEnv :: (Monad m) => Action -> StateT FrozenLakeEnvironment m (Observation, Double, Bool)
--- stepEnv act = do
---   env <- get
---   let currentObs = currentObservation env
---   let (slipRoll, gen') = Rand.randomR (0.0, 1.0) (randomGenerator fle)
---   let allLegalMoves = legalMoves currentObs (dimens fle)
---   let (randomMoveIndex, finalGen) = Rand.randomR (0, length allLegalMoves - 1) gen'
---   let newObservation = if slipRoll >= slipChance fle
---         then if act `elem` allLegalMoves
---           then applyMoveUnbounded act currentObs (snd . dimens $ fle)
---           else currentObs
---         else applyMoveUnbounded (allLegalMoves !! randomMoveIndex) currentObs (snd . dimens $ fle)
---   let (done, reward) = case (grid fle) A.! newObservation of
---         Goal -> (True, 1.0)
---         Hole -> (True, 0.0)
---         _ -> (False, 0.0)
---   put $ fle {currentObservation = newObservation, randomGenerator = finalGen, previousAction = Just act}
---   return (newObservation, reward, done)
-
-
-applyMove :: Action -> Observation -> Int -> Observation
-applyMove action pos numCols = case action of
-    MoveLeft -> pos - 1 
-    MoveDown -> pos + numCols
-    MoveRight -> pos + 1
-    MoveUp -> pos - numCols
-
-inBounds :: Observation -> (Int, Int) -> [Action]
-inBounds pos (numRows, numCols) = catMaybes [left, down, right, up]
-  where
-    (row, col) = quotRem pos numRows
-    left = if col > 0 then Just MoveLeft else Nothing
-    down = if row < numRows - 1 then Just MoveDown else Nothing
-    right = if col < numCols - 1 then Just MoveRight else Nothing
-    up = if row > 0 then Just MoveUp else Nothing
+isCliff :: Observation -> Bool
+isCliff pos1d = convertPosTo2D pos1d `elem` cliffStates
