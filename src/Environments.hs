@@ -1,25 +1,10 @@
-
--- module Environments (CliffWalkingEnv(..), makeCliffWalkingEnv, Observation, Action) where
--- module Environments (Observation, Action, resetEnv, gridH, gridW, Action) where
 module Environments where
+
+gridH = 4
+gridW = 12
+
 data Cell = Start | Goal | Free | Cliff
   deriving (Show, Eq)
-
--- isSafe :: Cell -> Bool
--- isSafe Cliff = False
--- isSafe _ = True
-
--- cellToChar :: Cell -> Char
--- cellToChar Start = 'S'
--- cellToChar Goal = 'G'
--- cellToChar Free = 'F'
--- cellToChar Cliff = 'H'
-
--- charToCell :: Char -> Cell
--- charToCell 'S' = Start
--- charToCell 'G' = Goal
--- charToCell 'F' = Free
--- charToCell 'C' = Cliff
 
 type Observation = Int
 
@@ -30,8 +15,6 @@ data Action =
   MoveUp
     deriving (Show, Eq, Enum)
 
-gridH = 4
-gridW = 12
 startState = convertPosTo1D (0, 3)
 goalState = convertPosTo1D (11, 3)
 cliffStates = [(x,3) | x <- [1..10]]
@@ -87,7 +70,6 @@ convertPosTo1D (x, y) =
 -- perform an action on the current observed state and renurn the next state, reward, and termination status
 stepEnv :: Action -> Observation -> (Observation, Double, Bool)
 stepEnv act pos
-  -- | isGoal nextPos    = (nextPos, 100, True)
   | isGoal nextPos    = (nextPos, 0, True)
   | isCliff nextPos   = (nextPos, -100, False)
   | otherwise         = (nextPos, -1, False)

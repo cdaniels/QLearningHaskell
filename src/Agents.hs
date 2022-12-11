@@ -1,5 +1,3 @@
--- module Agents (QLearningAgent(..), makeQLearningAgent) where
--- module Agents (performEpisodes) where
 module Agents where
 
 import Data.Ord
@@ -21,7 +19,6 @@ num_actions = 4
 -- initialize an array of size S*A
 initQTable :: [[Double]]
 initQTable = [[0.0 | i <- [1..num_actions]] | j <- [1..num_states]]
-
 
 -- Policy function
 -- takes a state and Qtable 
@@ -212,41 +209,3 @@ updateTable m x (r,c) =
   take r m ++ -- earlier rows
   [take c (m !! r) ++ [x] ++ drop (c + 1) (m !! r)] ++ -- desired row with value replaced
   drop (r + 1) m -- remaining rows
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
