@@ -121,6 +121,39 @@ getRandomAction = do
   return actIndex
 
 
+-- takes a number of runs and returns an array containing reward sum data
+performRuns :: (Ord t, Num t) => t -> t -> IO [Double]
+performRuns numRuns numEpisodes = do
+  let runData = []
+  runData' <- iterateRuns 0 numRuns numEpisodes runData
+  putStrLn $ "finished performing runs with data: " ++ show (transpose runData')
+  let avgData = averageOverRuns runData'
+  return avgData
+
+
+-- calculate the avereage rewards sum  of multiple runs
+-- takes an array of reward data series for each run
+-- returns an array of the average reward data over all the runs
+averageOverRuns :: [[Double]] -> [Double]
+averageOverRuns runData = [ calculateMean xs | xs <- transpose runData]
+
+
+calculateMean xs =
+  sum xs / (fromIntegral $ length xs)
+
+-- recursive function for iterating over runs while gathering data
+-- takes the q table together with an run count which it increments and an array of runData which it appends to as it recurs
+iterateRuns :: (Ord t, Num t) => t -> t -> t -> [[Double]] -> IO [[Double]]
+iterateRuns runCount maxRuns numEpisodes runData = do
+  rewards <- performEpisodes numEpisodes
+  -- increment run
+  let runCount' = runCount + 1 
+  let runData' = runData ++ [rewards]
+  -- if done then return, else recur
+  if runCount' == maxRuns
+    then return runData'
+    else iterateRuns runCount' maxRuns numEpisodes runData'
+
 -- takes a number of episodes and returns an array containing reward sum data
 performEpisodes :: (Ord t, Num t) => t -> IO [Double]
 performEpisodes numEpisodes = do
