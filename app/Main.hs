@@ -9,7 +9,7 @@ import qualified Plotting (plotData)
 import Environments
 import Agents
 
-numRuns = 1
+numRuns = 20
 numEpisodes = 100
 
 main :: IO ()
