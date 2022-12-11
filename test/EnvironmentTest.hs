@@ -6,27 +6,32 @@ import Test.QuickCheck
 import Test.Hspec
 
 main :: IO ()
-main = do
-  describe "Agenst.argMax" $ do
-    it "should return the index of the maximum arg in a list" $
-      property $ argMaxReturnsMaxIndex 
 
-  -- describe "Data.RedBlackTree.fromList" $ do
-  --   it "sorts and eliminates duplicates via a round-trip with toList" $
-  --     property $ roundTripSort
-  --   it "satisfies invariant 0 (Ordered)" $
-  --     property $ ordered
-  --   it "satisfies invariant 1 (Black Root)" $
-  --     property $ blackRoot
-  --   it "satisfies invariant 2 (No Red Chains)" $
-  --     property $ noRedChains
-  --   it "satisfies invariant 3 (Equal Paths)" $
-  --     property $ equalPaths
+main = hspec $ do
+
+  -- describe "Agenst.argMax" $ do
+  --   it "should return the index of the maximum arg in a list" $
+  --     property $ argMaxReturnsMaxIndex 
+  
+  describe "Environments.convertPosTo1D" $ do
+    it "1D and 2D conversions should be inverse operations" $
+       -- (convertPosTo2D $ (convertPosTo1D (-1, 1))) `shouldBe` (-1, 1)
+      property $ dimensionConversionIsReversable 
+
+  describe "Environments.step1D" $ do
+    it "should move up one y with up action" $
+      (convertPosTo2D $ step1D MoveUp (convertPosTo1D (3, 3))) `shouldBe` (3, 2)
+    it "should move down one y with down action" $
+      (convertPosTo2D $ step1D MoveDown (convertPosTo1D (3, 3))) `shouldBe` (3, 4)
+    it "should move left one x with left action" $
+      (convertPosTo2D $ step1D MoveLeft (convertPosTo1D (3, 3))) `shouldBe` (2, 3)
+    it "should move right one x with right action" $
+      (convertPosTo2D $ step1D MoveRight (convertPosTo1D (3, 3))) `shouldBe` (4, 3)
 
 
 
--- argMaxReturnsMaxIndex :: [a] -> Bool
--- argMaxReturnsMaxIndex [0,1,6] = 
-
-{-# language ExtendedDefaultRules, ScopedTypeVariables, QuasiQuotes, ParallelListComp #-}
+dimensionConversionIsReversable :: Int -> Int -> Bool 
+dimensionConversionIsReversable x y 
+  | x > 0 && x < gridW && y > 0 && y < gridH = (convertPosTo2D $ (convertPosTo1D (x, y))) == (x, y)
+  | otherwise       = True
 

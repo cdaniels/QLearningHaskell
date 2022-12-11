@@ -108,7 +108,10 @@ test-suite GridWorldRL-test
     hs-source-dirs:   test
 
     -- The entrypoint to the test suite.
-    main-is:          DisplayTest.hs
+    main-is:          EnvironmentTest.hs
 
     -- Test dependencies.
-    build-depends:    base ^>=4.14.3.0
+    build-depends:    base ^>=4.14.3.0,
+                      hspec ^>=2.10.6,
+                      QuickCheck,
+                      GridWorldRL

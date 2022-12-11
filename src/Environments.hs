@@ -52,13 +52,13 @@ stepXY MoveLeft x y
   | 0 < x     = (x-1, y)
   | otherwise = (x, y)
 stepXY MoveDown x y
-  | y > gridH = (x, y-1)
+  | y < gridH = (x, y+1)
   | otherwise = (x, y)
 stepXY MoveRight x y
   | x < gridW = (x+1, y)
   | otherwise = (x, y)
 stepXY MoveUp x y
-  | 0 < y     =  (x ,y+1)
+  | 0 < y     =  (x ,y-1)
   | otherwise = (x, y)
 
 step1D :: Action -> Int -> Int
@@ -69,14 +69,17 @@ step1D a pos1D =
     y = getYFromPos pos1D
 
 getXFromPos :: Int -> Int
-getXFromPos l = l `rem` gridW
+getXFromPos l = l `rem` gridH
 
 getYFromPos :: Int -> Int
-getYFromPos l = l `quot` gridH
+getYFromPos l = l `quot` gridW
 
 convertPosTo2D :: Int -> (Int, Int)
-convertPosTo2D l = quotRem l gridW
+convertPosTo2D l = reverseTuple $ quotRem l gridW
   -- (l `mod` gridW) (l )
+
+reverseTuple :: (a,b) -> (b,a)
+reverseTuple (a,b) = (b,a)
 
 convertPosTo1D :: (Int, Int) -> Int
 convertPosTo1D (x, y) =  

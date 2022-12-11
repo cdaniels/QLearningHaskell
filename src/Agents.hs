@@ -50,6 +50,7 @@ epsilonGreedyPolicy state qTable = do
 getMaxActionFromQTable :: Int -> QTable -> IO Action
 getMaxActionFromQTable state qTable = do
   putStrLn "getting max action from QTable for state:"
+  -- TODO STATE TOO HIGH HERE
   putStrLn $ (show state)
   index <- getMaxActIndexFromQTable state qTable
   return $ getActionFromIndex index
@@ -69,6 +70,10 @@ randomArgMax xs = do
   let maxIndices = getMaxIndices xs
   let l = length maxIndices
   randIndex <- Rand.randomRIO (0, l-1)
+  putStrLn "getingRandomArgMax!"
+  putStrLn $ show maxIndices
+  putStrLn "accessing index 1:!"
+  putStrLn $ show randIndex
   return $ maxIndices !! randIndex
 
 getMaxVals :: Ord a => [a] -> [a]
@@ -150,6 +155,12 @@ performStep qTable state rewardSum stepCount done = do
   -- update data
   let rewardSum' = rewardSum + reward
   let stepCount' = stepCount + 1
+
+
+  putStrLn "new state is:!"
+  putStrLn $ show state'
+
+
   q' <- updateQTable qTable state action reward state'
   -- if done then return, else recur
   if done 
@@ -169,6 +180,10 @@ updateQTable q s a r s' = do
 
   putStrLn "updatingQTable!"
   putStrLn $ show q
+  putStrLn "accessing index 0:!"
+  putStrLn $ show s
+  putStrLn "accessing index 1:!"
+  putStrLn $ show aIndex
   let pred = (q !! s) !! aIndex
   -- let pred = 0.0
   let maxQActVal = getMaxActValFromQTable s q
