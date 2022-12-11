@@ -11,9 +11,9 @@ import qualified System.Random as Rand
 import Environments
 
 
-alpha = 0.6
+alpha = 0.7
 epsilon = 0.1
-gamma = 0.96
+gamma = 1.0
 
 type QTable = [[Double]]
 
@@ -119,25 +119,34 @@ getRandomAction = do
 -- performEpisodes :: Int -> IO [Int]
 performEpisodes numEpisodes = do
   let q = initQTable
-  (q', rewards) <- performEpisode q
+  let rewardData = []
+  -- (q', rewards) <- performEpisode q
+  rewardData' <- iterateEpisodes q 0 numEpisodes rewardData
   -- let rewards = [1..100]
-  return rewards
+  return rewardData'
 
 
+iterateEpisodes :: (Ord t, Num t) => QTable -> t -> t -> [Double] -> IO [Double]
+iterateEpisodes qTable episodeCount maxEpisodes rewardData = do
+  (q', rewards) <- performEpisode qTable
+  -- increment episode
+  let episodeCount' = episodeCount + 1 
+  let rewardData' = rewardData ++ [rewards]
+  -- if done then return, else recur
+  if episodeCount' == maxEpisodes
+    then return rewardData'
+    else iterateEpisodes q' episodeCount' maxEpisodes rewardData'
 
 -- returns the sum of rewards for that epiisode
 -- performEpisode :: QTable -> IO (QTable, Double)
 performEpisode qTable = do
   let (state, reward, done) = resetEnv
-
-  -- TODO implement an inner loop here over steps that cumulates the 
   putStrLn "performingEpisode with init state:"
   putStrLn $ show state
   let rewardSum = 0.0
   let stepCount = 0
   (q', rewardSum) <- performStep qTable state rewardSum stepCount done
   return (q', rewardSum)
-  -- return (qTable, rewardSum)
 
 
 performStep :: QTable -> Observation -> Double -> Int -> Bool -> IO (QTable, Double)
@@ -145,22 +154,16 @@ performStep qTable state rewardSum stepCount done = do
   putStrLn "about to choose action!"
   action <- epsilonGreedyPolicy state qTable
   action <- getRandomAction
-
   putStrLn "perfomingStep!"
   putStrLn $ show state
   putStrLn $ show action
-
   let (state', reward, done) = stepEnv action state
   -- let (state', reward, done) = (state, 0.0, False)
   -- update data
   let rewardSum' = rewardSum + reward
   let stepCount' = stepCount + 1
-
-
   putStrLn "new state is:!"
   putStrLn $ show state'
-
-
   q' <- updateQTable qTable state action reward state'
   -- if done then return, else recur
   if done 

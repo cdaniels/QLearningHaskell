@@ -88,6 +88,7 @@ convertPosTo1D (x, y) =
 -- perform an action on the current observed state and renurn the next state, reward, and termination status
 stepEnv :: Action -> Observation -> (Observation, Double, Bool)
 stepEnv act pos
+  -- | isGoal nextPos    = (nextPos, 100, True)
   | isGoal nextPos    = (nextPos, 0, True)
   | isCliff nextPos   = (nextPos, -100, False)
   | otherwise         = (nextPos, -1, False)

@@ -9,7 +9,7 @@ import Environments
 import Agents
 -- import qualified Simulation (performEpisodes)
 
-numEpisodes = 100
+numEpisodes = 500
 
 main :: IO ()
 main = do
@@ -21,6 +21,9 @@ main = do
   -- let agent = makeQLearningAgent env agentParams
   -- rewards <- performEpisodes numEpisodes env
   rewards <- performEpisodes numEpisodes
+  putStrLn "finished performing Episodes!!"
+  putStrLn "rewardData is:"
+  putStrLn $ show rewards
   -- train the agent by through episodes of running the environment
   -- let results = Simulation.performEpisodes env agent
   -- plot the learning progress
