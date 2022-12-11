@@ -2,15 +2,6 @@
 -- module Environments (CliffWalkingEnv(..), makeCliffWalkingEnv, Observation, Action) where
 -- module Environments (Observation, Action, resetEnv, gridH, gridW, Action) where
 module Environments where
-
-
-import Control.Monad (forM_)
-import Control.Monad.State
-import qualified Data.Array as A
-import Data.List.Split (chunksOf)
-import Data.Maybe (catMaybes)
-import qualified System.Random as Rand
-
 data Cell = Start | Goal | Free | Cliff
   deriving (Show, Eq)
 
@@ -46,7 +37,9 @@ goalState = convertPosTo1D (11, 3)
 cliffStates = [(x,3) | x <- [1..10]]
 
 
--- step in th
+-- perform a step in the enviorenment
+-- takes an action, an x and y position
+-- returns a new x, y position
 stepXY :: Action -> Int -> Int -> (Int, Int)
 stepXY MoveLeft x y 
   | 0 < x     = (x-1, y)
@@ -61,26 +54,32 @@ stepXY MoveUp x y
   | 0 < y     =  (x , y-1)
   | otherwise = (x, y)
 
+-- perform a step in the enviorenment 
+-- using 1d locations
+-- takes an action, a 1d position
+-- returns a new 1d position
 step1D :: Action -> Int -> Int
 step1D a pos1D =
   convertPosTo1D $ stepXY a x y
   where (x, y) = convertPosTo2D pos1D
-    -- x = getXFromPos pos1D
-    -- y = getYFromPos pos1D
 
+-- returns the x coord of a 1d position
 getXFromPos :: Int -> Int
 getXFromPos l = l `rem` gridH
 
+-- returns the y coord of a 1d position
 getYFromPos :: Int -> Int
 getYFromPos l = l `quot` gridW
 
+-- convert a 1d position to 2d x, y coords
 convertPosTo2D :: Int -> (Int, Int)
 convertPosTo2D l = reverseTuple $ quotRem l gridW
-  -- (l `mod` gridW) (l )
 
+-- reverse a tuple's values
 reverseTuple :: (a,b) -> (b,a)
 reverseTuple (a,b) = (b,a)
 
+-- convert a 2d position to a 1d position
 convertPosTo1D :: (Int, Int) -> Int
 convertPosTo1D (x, y) =  
   y * gridW + x
@@ -94,11 +93,15 @@ stepEnv act pos
   | otherwise         = (nextPos, -1, False)
   where nextPos = step1D act pos
 
+-- reset the environment
+-- returns a tuple contaning the observation for the stard of an episode
 resetEnv :: (Observation, Int, Bool)
 resetEnv = (startState, 0, False)
 
+-- check if a certain observed state is the goal state
 isGoal :: Observation -> Bool
 isGoal pos1d = pos1d == goalState
 
+-- check if a certain observed state is a cliff
 isCliff :: Observation -> Bool
 isCliff pos1d = convertPosTo2D pos1d `elem` cliffStates

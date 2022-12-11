@@ -1,7 +1,7 @@
 module Main (main) where
 
-import Agents
 import Environments
+import Agents
 
 import Test.QuickCheck
 import Test.Hspec
@@ -33,26 +33,31 @@ main = hspec $ do
     it "should terminate when moving to the goal state" $
       stepEnv MoveDown (convertPosTo1D (11, 2)) `shouldBe` ((convertPosTo1D (11, 3)), 0, True)
 
-
   -- describe "Agents.updateQTable" $ do
   --   it "should terminate when moving to the goal state" $
-  --     stepEnv MoveDown (convertPosTo1D (11, 2)) `shouldBe` ((convertPosTo1D (11, 3)), 0, True)
+  --     updateQTable [[0.0, 0.0, 0.0],[0.0,0.0,0.0]] 0 2 `shouldBe` 
 
-  -- describe "Agenst.argMax" $ do
-  --   it "should return the index of the maximum arg in a list" $
-  --     property $ argMaxReturnsMaxIndex 
+  describe "Agents.getIndexFromAction" $ do
+    it "should be reversable with getActionFromIndex" $
+      (getIndexFromAction $ getActionFromIndex 2) `shouldBe` 2
+
+  describe "Agenst.argMax" $ do
+    it "should return the index of the maximum arg in a list" $
+      argMax [0.0, 1.0, 4.0, 2.0] `shouldBe` 2
 
   -- describe "Agents.epsilonGreedyPolicy" $ do
   --   it "should terminate when moving to the goal state" $
   --     stepEnv MoveDown (convertPosTo1D (11, 2)) `shouldBe` ((convertPosTo1D (11, 3)), 0, True)
 
   -- describe "Agents.getMaxActionFromQTable" $ do
-  --   it "should terminate when moving to the goal state" $
-  --     stepEnv MoveDown (convertPosTo1D (11, 2)) `shouldBe` ((convertPosTo1D (11, 3)), 0, True)
+  --   it "should return the maximum action from a list of actions" $
+  --     getMaxActionFromQTable 0 [[0.0, 2.0, 3.0, 0.0],[0.0,0.0,0.0,1.0]] `shouldBe` 
 
-  -- describe "Agents.getMaxActValFromQTable" $ do
-  --   it "should terminate when moving to the goal state" $
-  --     stepEnv MoveDown (convertPosTo1D (11, 2)) `shouldBe` ((convertPosTo1D (11, 3)), 0, True)
+-- getActionFromIndex :: Int -> Action
+
+  describe "Agents.getMaxActValFromQTable" $ do
+    it "should return the maximum action value from a list of action values" $
+      getMaxActValFromQTable 0 [[0.0, 2.0, 3.0],[0.0,0.0,0.0]] `shouldBe` 3.0
 
   -- describe "Agents.performStep" $ do
   --   it "should terminate when moving to the goal state" $
@@ -66,3 +71,6 @@ dimensionConversionIsReversable x y
   | x > 0 && x < gridW && y > 0 && y < gridH = (convertPosTo2D $ (convertPosTo1D (x, y))) == (x, y)
   | otherwise       = True
 
+
+-- actionIndexConversionIsReversable :: Int -> Bool
+-- actionIndexConversionIsReversable index =
