@@ -16,9 +16,7 @@ main = do
   -- train the agent by through episodes of running the environment
   rewards <- performEpisodes numEpisodes
   -- print the results to the screen
-  putStrLn "finished performing Episodes!!"
-  putStrLn "rewardData is:"
-  putStrLn $ show rewards
+  putStrLn $ "finished performing Episodes!! rewarData is:" ++ show rewards
   -- plot the learning progress
   Plotting.plotData numEpisodes rewards
   -- render an episode with the agents learned policy

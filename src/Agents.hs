@@ -8,7 +8,6 @@ import qualified System.Random as Rand
 
 import Environments
 
-
 alpha = 0.1
 epsilon = 0.1
 gamma = 1.0
@@ -47,9 +46,7 @@ epsilonGreedyPolicy state qTable = do
 
 getMaxActionFromQTable :: Int -> QTable -> IO Action
 getMaxActionFromQTable state qTable = do
-  putStrLn "getting max action from QTable for state:"
-  -- TODO STATE TOO HIGH HERE
-  putStrLn $ (show state)
+  putStrLn $ "Getting max action from QTable for state: " ++ show state
   index <- getMaxActIndexFromQTable state qTable
   return $ getActionFromIndex index
 
@@ -68,10 +65,6 @@ randomArgMax xs = do
   let maxIndices = getMaxIndices xs
   let l = length maxIndices
   randIndex <- Rand.randomRIO (0, l-1)
-  putStrLn "getingRandomArgMax!"
-  putStrLn $ show maxIndices
-  putStrLn "accessing index 1:!"
-  putStrLn $ show randIndex
   return $ maxIndices !! randIndex
 
 getMaxVals :: Ord a => [a] -> [a]
@@ -107,8 +100,6 @@ getIndexFromAction act
 getRandomAction :: IO Action
 getRandomAction = do
   randIndex <- Rand.randomRIO (0, 3)
-  putStrLn "Random Index is"
-  putStrLn $ show randIndex
   let actIndex = getActionFromIndex randIndex
   return actIndex
 
@@ -139,8 +130,7 @@ iterateEpisodes qTable episodeCount maxEpisodes rewardData = do
 -- performEpisode :: QTable -> IO (QTable, Double)
 performEpisode qTable = do
   let (state, reward, done) = resetEnv
-  putStrLn "performingEpisode with init state:"
-  putStrLn $ show state
+  putStrLn $ "Performing episode with init state:" ++ show state
   let rewardSum = 0.0
   let stepCount = 0
   (q', rewardSum) <- performStep qTable state rewardSum stepCount done
@@ -149,19 +139,14 @@ performEpisode qTable = do
 
 performStep :: QTable -> Observation -> Double -> Int -> Bool -> IO (QTable, Double)
 performStep qTable state rewardSum stepCount done = do
-  putStrLn "about to choose action!"
   action <- epsilonGreedyPolicy state qTable
-  -- action <- getRandomAction
-  putStrLn "perfomingStep!"
-  putStrLn $ show state
-  putStrLn $ show action
+  putStrLn $ "Choose action: " ++ show action
   let (state', reward, done) = stepEnv action state
   -- let (state', reward, done) = (state, 0.0, False)
   -- update data
   let rewardSum' = rewardSum + reward
   let stepCount' = stepCount + 1
-  putStrLn "new state is:!"
-  putStrLn $ show state'
+  putStrLn $ "After action new state is: " ++ show state'
   q' <- updateQTable qTable state action reward state'
   -- if done then return, else recur
   if done 
@@ -178,13 +163,8 @@ updateQTable :: QTable -> Observation -> Action -> Double -> Observation -> IO Q
 updateQTable q s a r s' = do
   let oldQ = q
   let aIndex = getIndexFromAction a
+  putStrLn $ "updatingQTable!" ++ show q
 
-  putStrLn "updatingQTable!"
-  putStrLn $ show q
-  putStrLn "accessing index 0:!"
-  putStrLn $ show s
-  putStrLn "accessing index 1:!"
-  putStrLn $ show aIndex
   let pred = (q !! s) !! aIndex
   -- let pred = 0.0
   let maxQActVal = getMaxActValFromQTable s q
