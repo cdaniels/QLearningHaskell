@@ -6,6 +6,7 @@ import qualified System.Random as Rand
 
 import Environments
     ( Action(..), Observation, gridH, gridW, stepEnv, resetEnv )
+-- import qualified Display (renderGrid, closeWindow)
 
 -- tunable learning parameters
 alpha :: Double
@@ -156,17 +157,21 @@ calculateMean xs = sum xs / fromIntegral (length xs)
 -- takes the q table together with an run count which it increments and an array of runData which it appends to as it recurs
 iterateRuns :: (Ord t, Num t) => t -> t -> t -> [[Double]] -> IO [[Double]]
 iterateRuns runCount maxRuns numEpisodes runData = do
-  rewards <- performEpisodes numEpisodes
+  -- get the resulting qTable and reward data from performing the specified number of episodes
+  (q, rewards) <- performEpisodes numEpisodes
   -- increment run
   let runCount' = runCount + 1 
   let runData' = runData ++ [rewards]
   -- if done then return, else recur
   if runCount' == maxRuns
-    then return runData'
+    then 
+      -- render an episode with the agents learned policy
+      -- return the resulting data for plotting purposes
+      return runData'
     else iterateRuns runCount' maxRuns numEpisodes runData'
 
 -- takes a number of episodes and returns an array containing reward sum data
-performEpisodes :: (Ord t, Num t) => t -> IO [Double]
+performEpisodes :: (Ord t, Num t) => t -> IO (QTable, [Double])
 performEpisodes numEpisodes = do
   -- initialize a qTable and an empty list for the data
   let q = initQTable
@@ -177,7 +182,7 @@ performEpisodes numEpisodes = do
 
 -- recursive function for iterating over episodes while learning is performed
 -- takes the q table together with an episode count which it increments and an array of rewardData which it appends to as it recurs
-iterateEpisodes :: (Ord t, Num t) => QTable -> t -> t -> [Double] -> IO [Double]
+iterateEpisodes :: (Ord t, Num t) => QTable -> t -> t -> [Double] -> IO (QTable, [Double])
 iterateEpisodes qTable episodeCount maxEpisodes rewardData = do
   (q', rewards) <- performEpisode qTable
   -- increment episode
@@ -185,7 +190,7 @@ iterateEpisodes qTable episodeCount maxEpisodes rewardData = do
   let rewardData' = rewardData ++ [rewards]
   -- if done then return, else recur
   if episodeCount' == maxEpisodes
-    then return rewardData'
+    then return (q', rewardData')
     else iterateEpisodes q' episodeCount' maxEpisodes rewardData'
 
 -- perform an episode
