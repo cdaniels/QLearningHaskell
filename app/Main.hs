@@ -2,14 +2,14 @@
 {-# LANGUAGE ExtendedDefaultRules #-}
 
 module Main where
-
 import qualified Display (renderEpisode)
 import qualified Plotting (plotData)
+import Agents ( performRuns )
 
-import Environments
-import Agents
-
-numRuns = 20
+-- parameters to specify the length of the simulation
+numRuns :: Int
+numRuns = 5
+numEpisodes :: Int
 numEpisodes = 100
 
 main :: IO ()

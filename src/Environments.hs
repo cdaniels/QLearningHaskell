@@ -1,13 +1,18 @@
 module Environments where
+import System.Environment (getEnvironment)
 
+-- constants for grid dimensions
+gridH :: Int
 gridH = 4
+gridW :: Int
 gridW = 12
 
+
+-- data types for environment cells, observation of environment by agents, and possible actions of agent in environment
 data Cell = Start | Goal | Free | Cliff
   deriving (Show, Eq)
 
 type Observation = Int
-
 data Action =
   MoveLeft |
   MoveDown |
@@ -15,8 +20,14 @@ data Action =
   MoveUp
     deriving (Show, Eq, Enum)
 
+-- specified states to serve certain roles in the environment
+-- episodes start at the startState and end at the goalState
+-- agent is returned to the startState with a negative reward if they step off the cliff
+startState :: Int
 startState = convertPosTo1D (0, 3)
+goalState :: Int
 goalState = convertPosTo1D (11, 3)
+cliffStates :: [(Int, Int)]
 cliffStates = [(x,3) | x <- [1..10]]
 
 
@@ -71,7 +82,7 @@ convertPosTo1D (x, y) =
 stepEnv :: Action -> Observation -> (Observation, Double, Bool)
 stepEnv act pos
   | isGoal nextPos    = (nextPos, 0, True)
-  | isCliff nextPos   = (nextPos, -100, False)
+  | isCliff nextPos   = (startState, -100, False)
   | otherwise         = (nextPos, -1, False)
   where nextPos = step1D act pos
 

@@ -1,23 +1,34 @@
 module Agents where
 
-import Data.Ord
-import Data.List
+import Data.Ord ( comparing )
+import Data.List ( maximumBy, transpose )
 import qualified System.Random as Rand
 
 import Environments
+    ( Action(..), Observation, gridH, gridW, stepEnv, resetEnv )
 
+-- tunable learning parameters
+alpha :: Double
 alpha = 0.1
+epsilon :: Double
 epsilon = 0.1
+gamma :: Double
 gamma = 1.0
 
-type QTable = [[Double]]
+-- constants for number of states and actions 
+numStates :: Int
+numStates = gridH*gridW
+numActions :: Int
+numActions = 4
 
-num_states = gridH*gridW
-num_actions = 4
+
+-- table replesenting values for each action given a certain state
+-- should have size numStates x numActions
+type QTable = [[Double]]
 
 -- initialize an array of size S*A
 initQTable :: [[Double]]
-initQTable = [[0.0 | i <- [1..num_actions]] | j <- [1..num_states]]
+initQTable = [[0.0 | i <- [1..numActions]] | j <- [1..numStates]]
 
 -- Policy function
 -- takes a state and Qtable 
@@ -137,8 +148,9 @@ averageOverRuns :: [[Double]] -> [Double]
 averageOverRuns runData = [ calculateMean xs | xs <- transpose runData]
 
 
-calculateMean xs =
-  sum xs / (fromIntegral $ length xs)
+-- calculate the mean value of a given list
+calculateMean :: (Fractional a, Foldable t) => t a -> a
+calculateMean xs = sum xs / fromIntegral (length xs)
 
 -- recursive function for iterating over runs while gathering data
 -- takes the q table together with an run count which it increments and an array of runData which it appends to as it recurs
@@ -156,12 +168,11 @@ iterateRuns runCount maxRuns numEpisodes runData = do
 -- takes a number of episodes and returns an array containing reward sum data
 performEpisodes :: (Ord t, Num t) => t -> IO [Double]
 performEpisodes numEpisodes = do
+  -- initialize a qTable and an empty list for the data
   let q = initQTable
   let rewardData = []
-  -- (q', rewards) <- performEpisode q
-  rewardData' <- iterateEpisodes q 0 numEpisodes rewardData
-  -- let rewards = [1..100]
-  return rewardData'
+  -- iterate over all the episodes, learning witht the qTable and filling the data list with results
+  iterateEpisodes q 0 numEpisodes rewardData
 
 
 -- recursive function for iterating over episodes while learning is performed
