@@ -26,4 +26,4 @@ drawing = pictures
     paddleColor = light (light blue)
 
 
-renderEpisode env agent = display window background drawing
+renderEpisode = display window background drawing

@@ -14,21 +14,21 @@ import qualified System.Random as Rand
 data Cell = Start | Goal | Free | Cliff
   deriving (Show, Eq)
 
-isSafe :: Cell -> Bool
-isSafe Cliff = False
-isSafe _ = True
+-- isSafe :: Cell -> Bool
+-- isSafe Cliff = False
+-- isSafe _ = True
 
-cellToChar :: Cell -> Char
-cellToChar Start = 'S'
-cellToChar Goal = 'G'
-cellToChar Free = 'F'
-cellToChar Cliff = 'H'
+-- cellToChar :: Cell -> Char
+-- cellToChar Start = 'S'
+-- cellToChar Goal = 'G'
+-- cellToChar Free = 'F'
+-- cellToChar Cliff = 'H'
 
-charToCell :: Char -> Cell
-charToCell 'S' = Start
-charToCell 'G' = Goal
-charToCell 'F' = Free
-charToCell 'C' = Cliff
+-- charToCell :: Char -> Cell
+-- charToCell 'S' = Start
+-- charToCell 'G' = Goal
+-- charToCell 'F' = Free
+-- charToCell 'C' = Cliff
 
 type Observation = Int
 

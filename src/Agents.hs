@@ -4,14 +4,12 @@ module Agents (performEpisodes) where
 import Data.Ord
 import Data.List
 import Data.IntCast
-
 import qualified System.Random as Rand
-
 
 import Environments
 
 
-alpha = 0.7
+alpha = 0.1
 epsilon = 0.1
 gamma = 1.0
 
@@ -153,7 +151,7 @@ performStep :: QTable -> Observation -> Double -> Int -> Bool -> IO (QTable, Dou
 performStep qTable state rewardSum stepCount done = do
   putStrLn "about to choose action!"
   action <- epsilonGreedyPolicy state qTable
-  action <- getRandomAction
+  -- action <- getRandomAction
   putStrLn "perfomingStep!"
   putStrLn $ show state
   putStrLn $ show action
@@ -197,9 +195,6 @@ updateQTable q s a r s' = do
   return q'
 
 -- takes tabl, row, col, returns updated table
--- replaceTableVal :: [Double] -> Int -> Int -> [Double]
--- replaceTableVal qTable s a = 
-
 updateTable :: [[a]] -> a -> (Int, Int) -> [[a]]
 updateTable m x (r,c) =
   take r m ++
