@@ -2,7 +2,6 @@ module Agents where
 
 import Data.Ord
 import Data.List
-import Data.IntCast
 import qualified System.Random as Rand
 
 import Environments

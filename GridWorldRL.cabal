@@ -60,11 +60,7 @@ library
     -- Other library packages from which modules are imported.
     build-depends:    base ^>=4.14.3.0,
                       random,
-                      array,
-                      mtl,
-                      split,
                       list-extras,
-                      int-cast,
                       gloss^>=1.13.2.1,
                       matplotlib ^>=0.7.7
 
