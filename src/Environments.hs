@@ -29,6 +29,8 @@ goalState :: Int
 goalState = convertPosTo1D (11, 3)
 cliffStates :: [(Int, Int)]
 cliffStates = [(x,3) | x <- [1..10]]
+gridCells :: [(Int, Int)]
+gridCells = [convertPosTo2D l | l <- [0..gridH*gridW-1]]
 
 
 -- perform a step in the enviorenment

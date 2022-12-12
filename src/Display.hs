@@ -1,4 +1,4 @@
-module Display (renderStep) where
+module Display (renderStep, createDisplayRenderer, DisplayCanvas) where
 
 import qualified System.Random as Rand
 
@@ -19,15 +19,16 @@ import SDL.Cairo
 import Linear.V2 (V2(..))
 import Graphics.Rendering.Cairo.Canvas
 
-
+type DisplayCanvas = (Renderer, Texture)
 xPadding = 100
 yPadding :: Double
 yPadding = 100
 
+-- render a grid cell at a certain location with a certain color
 drawCell x y color= do
   let cellSize = 50
   fill color
-  noStroke
+  stroke $ gray 255 !@ 128
   let x' = fromIntegral x
   let y' = fromIntegral y
   rect $ D (xPadding + x'*cellSize) (yPadding + y'*cellSize) cellSize cellSize -- corner1 x,y , corner2 x,y
@@ -38,7 +39,7 @@ drawAgentCell x y = do
 
 drawStartCell = do
   let (x, y) = convertPosTo2D startState
-  let color = green 255 !@ 128
+  let color = rgb 255 255 0 !@ 128
   drawCell x y color
 
 drawGoalCell = do
@@ -46,44 +47,49 @@ drawGoalCell = do
   let color = green 255 !@ 128
   drawCell x y color
 
--- drawCliffCells = do
---   let color = blue 255 !@ 128
---   -- cells = [convertcliffStates
---   drawCell (fromIntegral x) (fromIntegral y) color
+drawCells = do
+  sequence [drawDefaultCell coord | coord <- gridCells]
 
--- drawDefaultCells = do
---   let color = blue 255 !@ 128
---   drawCell (fromIntegral x) (fromIntegral y) color
+drawCliffCells = do
+  sequence [drawCliffCell coord | coord <- cliffStates]
 
+drawCliffCell (x,y) = do
+  let color = gray 0 !@ 128
+  drawCell x y color
+
+drawDefaultCell (x,y) = do
+  let color = gray 200 !@ 128
+  drawCell x y color
+
+-- render the cells in the grid
 drawGrid = do
-  -- drawDefaultCells
+  drawCells
+  drawCliffCells
   drawStartCell
   drawGoalCell
 
-renderStep :: Int -> Int -> IO ()
-renderStep step state = do
-  -- r <- newIORef ""
-  -- forkIO $ animate window background $ getFrame state
+-- creates a display object that holds the context which allows a canvas to be displayed
+createDisplayRenderer :: IO (Renderer, Texture)
+createDisplayRenderer = do
   initializeAll
-  window <- createWindow (T.pack "cairo-canvas using SDL2") defaultWindow
+  window <- createWindow (T.pack "CliffWalking Environment") defaultWindow
   renderer <- createRenderer window (-1) defaultRenderer
   texture <- createCairoTexture' renderer window
+  return (renderer, texture)
 
+-- render the grid for a specific step
+renderStep :: DisplayCanvas -> Int -> Int -> IO ()
+renderStep (renderer, texture) step state = do
+  putStrLn $ "Attempting to render Step for state : " ++ show state
   -- x, y position of agent
   let (x, y) = convertPosTo2D state
-
+  -- render the grid and the agent at the given location
   withCairoTexture' texture $ runCanvas $ do
     background $ gray 102
     drawGrid
     drawAgentCell x y
-    -- stroke $ green 255 !@ 128
-    -- fill $ blue 255 !@ 128
-    -- rect $ D 250 250 100 100
-    -- triangle (V2 400 300) (V2 350 400) (V2 400 400)
-
-  
-
+  -- update the displayed texture
   copy renderer texture Nothing Nothing
   present renderer
-  putStrLn $ "Attempting to render Step for state : " ++ show state
+  -- delay so that the screen is visible
   threadDelay 100000 -- microsecends

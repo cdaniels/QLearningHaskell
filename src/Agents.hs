@@ -6,7 +6,7 @@ import qualified System.Random as Rand
 
 import Environments
     ( Action(..), Observation, gridH, gridW, stepEnv, resetEnv )
-import Display (renderStep)
+import Display (renderStep, createDisplayRenderer, DisplayCanvas)
 
 -- tunable learning parameters
 alpha :: Double
@@ -170,7 +170,7 @@ iterateRuns runCount maxRuns numEpisodes runData = do
 playLastEpisode :: QTable -> [[Double]] -> IO [[Double]]
 playLastEpisode qTable runData = do
   -- render an episode with the agents learned policy
-  (q', reward') <- performEpisode qTable True
+  (q', reward') <- displayEpisode qTable
   -- return the resulting data for plotting purposes
   return runData
 
@@ -188,7 +188,7 @@ performEpisodes numEpisodes = do
 -- takes the q table together with an episode count which it increments and an array of rewardData which it appends to as it recurs
 iterateEpisodes :: (Ord t, Num t) => QTable -> t -> t -> [Double] -> IO (QTable, [Double])
 iterateEpisodes qTable episodeCount maxEpisodes rewardData = do
-  (q', rewards) <- performEpisode qTable False
+  (q', rewards) <- performEpisode qTable
   -- increment episode
   let episodeCount' = episodeCount + 1 
   let rewardData' = rewardData ++ [rewards]
@@ -198,45 +198,72 @@ iterateEpisodes qTable episodeCount maxEpisodes rewardData = do
     else iterateEpisodes q' episodeCount' maxEpisodes rewardData'
 
 -- perform an episode
--- tabes the q table and a boolean flag indicating whether or not to render the episode
+-- takes the q table
 -- returns the sum of rewards for that epsode
-performEpisode :: QTable -> Bool -> IO (QTable, Double)
-performEpisode qTable rendering = do
+performEpisode :: QTable -> IO (QTable, Double)
+performEpisode qTable = do
   let (state, reward, done) = resetEnv
   putStrLn $ "Performing episode with init state:" ++ show state
   let rewardSum = 0.0
   let stepCount = 0
-  (q', rewardSum) <- performStep qTable state rewardSum stepCount rendering done
-  return (q', rewardSum)
+  performStep qTable state rewardSum stepCount done
 
+-- perform an episode while rendering its steps
+-- takes the q table
+-- returns the sum of rewards for that epsode
+displayEpisode :: QTable -> IO (QTable, Double)
+displayEpisode qTable = do
+  let (state, reward, done) = resetEnv
+  putStrLn $ "Performing episode with init state:" ++ show state
+  let rewardSum = 0.0
+  let stepCount = 0
+  display <- createDisplayRenderer
+  displayStep qTable state rewardSum stepCount done display
 
 -- recursive function for performing steps of an episode
 --   takes the q table together with 
 --   an observation, 
 --   cumulative reward sum, 
 --   cumulative step count, 
---   a flag signifying whether to render
 --   and a flag signifying termination
-performStep :: QTable -> Observation -> Double -> Int -> Bool -> Bool -> IO (QTable, Double)
-performStep qTable state rewardSum stepCount rendering done = do
+performStep :: QTable -> Observation -> Double -> Int -> Bool -> IO (QTable, Double)
+performStep qTable state rewardSum stepCount done = do
   action <- epsilonGreedyPolicy state qTable
   putStrLn $ "Choose action: " ++ show action
   let (state', reward, done) = stepEnv action state
-  -- let (state', reward, done) = (state, 0.0, False)
+  -- update data
+  let rewardSum' = rewardSum + reward
+  let stepCount' = stepCount + 1
+  putStrLn $ "After action new state is: " ++ show state'
+  q' <- updateQTable qTable state action reward state'
+  if done 
+    then return (qTable, rewardSum)
+    else performStep q' state' rewardSum' stepCount' done
+
+
+-- recursive function for performing steps of an episode  (while displaying)
+--   takes the q table together with 
+--   an observation, 
+--   cumulative reward sum, 
+--   cumulative step count, 
+--   a flag signifying termination
+--   and a DisplayCanvas type containing the canvas texture on which to render
+displayStep :: QTable -> Observation -> Double -> Int -> Bool -> DisplayCanvas -> IO (QTable, Double)
+displayStep qTable state rewardSum stepCount done display = do
+  action <- epsilonGreedyPolicy state qTable
+  putStrLn $ "Choose action: " ++ show action
+  let (state', reward, done) = stepEnv action state
   -- update data
   let rewardSum' = rewardSum + reward
   let stepCount' = stepCount + 1
   putStrLn $ "After action new state is: " ++ show state'
   q' <- updateQTable qTable state action reward state'
   -- render the step if rendering is enabled
-  if rendering
-    -- then Display.renderStep stepCount state'
-    then putStrLn "Would Render step..."
-    else putStrLn "Not Rendering step.."
+  Display.renderStep display stepCount state'
   -- if done then return, else recur 
   if done 
     then return (qTable, rewardSum)
-    else performStep q' state' rewardSum' stepCount' rendering done
+    else displayStep q' state' rewardSum' stepCount' done display
 
 
 -- takes the old q table and updates it with new state info
